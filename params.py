@@ -41,13 +41,13 @@ params = AttrDict(
 
     # Data params
     # sample_rate=22050,
-    sample_rate = 2, #不过应该用不上
-    n_mels=180, #mel spec 用不上
+    sample_rate = 2, 
+    n_mels=180, 
     # 对应spectrogram.shapep[0]
     # spectrogram.shape [180, 200] => frequency scale * time scale
-    n_fft=1024, #mel spec 用不上
-    hop_samples=256,#mel spec 用不上
-    crop_mel_frames=62,  # Probably an error in paper. #mel spec 用不上
+    n_fft=1024, 
+    hop_samples=256,
+
 
     # Model params
     residual_layers=30,
