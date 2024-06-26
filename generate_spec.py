@@ -33,43 +33,36 @@ def generate_prsa_curve(fhr_series, L, T, sampling_rate):
         return time_axis, prsa_curve
     else:
         return [], []
+
+
+def prsa_spectrum(data):
     
-
-def prsa_spectrum(fhr_series, L, T, sample_rate):
-    fhr_series_ms = bpm_to_ms(fhr_series)
-    time_axis, prsa_curve = generate_prsa_curve(fhr_series_ms, L, T, smaple_rate)
-
-
-    prsa_data = prsa_curve
-    fs = 4 #sample rate
-    t = np.linspace(0, len(prsa_data) / fs, num=len(prsa_data), endpoint=False)
-
-    # Morse wavelet
-    gamma = 3
-    # based on the time-bandwidth product equal to 60 in the paper
-    # beta = gamma * time-bandwidth product
-    beta = 180
-    wavelet = Wavelet(('gmw', {'gamma': gamma, 'beta': beta}))
-
-    # cwt
-    Wx, scales = cwt(prsa_data, wavelet)
-    print("Wx:", Wx)
-    print("scales:", scales)
-
-    # wavelet power
-    spectrogram = np.abs(Wx)**2
-
-
-    sampling_period = 1 / fs
-    #frequencies = (beta ** (1 / gamma)) / (np.sqrt(2 * np.pi) * scales * sampling_period)
-    frequencies = ((2**(1/beta)) * ((gamma/beta)**(1/gamma))) / (scales * fs)
-
-    # when k = 0, central freq spectrogram
-    central_freq_index = len(prsa_data) // 2  # 中心频率索引
-    PRSA_Spt = spectrogram[:, central_freq_index]
-
+    # generate prsa_curve
+    L = 100
+    T = 1
+    sample_rate = 2
+    time_axis, prsa_curve = generate_prsa_curve(data, L, T, sample_rate)
+    print(prsa_curve.shape)
+    # compute scales 
+    N = len(prsa_curve)          
+    delta_t = 0.5      
+    s0 = 1.0           
+    J = 179         
+    delta_j = 1 / J * np.log2(N * delta_t / s0)
+    scales = s0 * 2 ** (np.arange(0, J + 1) * delta_j)
+    time = np.linspace(0, 1, N)
     
-    return frequencies, spectrogram
+    wavename = 'cmor'
+    central_frequency = 6
+    bandwidth = 1.5  
+
+    wavelet = pywt.ContinuousWavelet(wavename + str(bandwidth) + '-' + str(central_frequency))
+    coefficients, frequencies = pywt.cwt(prsa_curve, scales, wavelet, sampling_period=1/sample_rate)
+
+    spectrogram = np.abs(coefficients)
+  
+    return spectrogram
+    
 
 fhr_series = np.load('../fragments2/1123_1.npy')
 
